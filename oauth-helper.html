@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spoofy - Google Sign In</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #fff;
+        }
+        .container {
+            background: #282828;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .logo {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #1db954;
+        }
+        p {
+            color: #b3b3b3;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        .token-box {
+            background: #181818;
+            border: 2px solid #1db954;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #1db954;
+            max-height: 120px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .copy-btn {
+            background: #1db954;
+            color: #fff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover {
+            background: #1ed760;
+            transform: scale(1.02);
+        }
+        .copy-btn:active {
+            transform: scale(0.98);
+        }
+        .copy-btn.copied {
+            background: #2ecc71;
+        }
+        .instructions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #404040;
+            font-size: 14px;
+            color: #888;
+        }
+        .error {
+            color: #e74c3c;
+        }
+        .error .token-box {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="logo">🎵</div>
+        <h1>Spoofy</h1>
+        <p>Loading...</p>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+
+        // Parse token from URL hash
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
+        const error = params.get('error');
+
+        // Security: Token is only shown to the authenticated user
+        // The token cannot be intercepted because:
+        // 1. It's in the URL fragment (#) which is never sent to the server
+        // 2. Only the user who authenticated can see this page
+        // 3. The token expires in 1 hour
+
+        if (accessToken) {
+            container.innerHTML = `
+                <div class="logo">✅</div>
+                <h1>Success!</h1>
+                <p>Copy this access token and paste it in the Spoofy app:</p>
+                <div class="token-box" id="token">${accessToken}</div>
+                <button class="copy-btn" onclick="copyToken()">Copy Token</button>
+                <p class="instructions">After copying, switch back to Spoofy and paste the token.</p>
+            `;
+        } else if (error) {
+            container.classList.add('error');
+            container.innerHTML = `
+                <div class="logo">❌</div>
+                <h1>Error</h1>
+                <p>Authentication failed:</p>
+                <div class="token-box">${error}: ${params.get('error_description') || 'Unknown error'}</div>
+                <p class="instructions">Please close this window and try again.</p>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="logo">🔄</div>
+                <h1>Redirecting...</h1>
+                <p>Please wait while we connect to Google...</p>
+            `;
+        }
+
+        function copyToken() {
+            const token = document.getElementById('token').textContent;
+            navigator.clipboard.writeText(token).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy Token';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
